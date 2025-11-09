@@ -117,8 +117,8 @@ export default class Replay {
         replayBoard.createCandy = function(row, col, type, isInitializing = false) {
             return Board.prototype.createCandy.call(this, row, col, type, isInitializing, true);
         };
-        replayBoard.fillBoard = function() {
-            return Board.prototype.fillBoard.call(this, true);
+        replayBoard.fillBoard = function(isReplay, noAnimation) {
+            return Board.prototype.fillBoard.call(this, true, noAnimation);
         };
 
         replayBoard.initialize(recording.initialState);
@@ -131,17 +131,17 @@ export default class Replay {
                 const candy1 = replayBoard.grid[action.from.r][action.from.c];
                 const candy2 = replayBoard.grid[action.to.r][action.to.c];
                 if (candy1 && candy2) {
-                    await replayBoard.swapCandies(candy1, candy2);
-                    const isValid = await replayBoard.processMatches(false, [candy1, candy2]);
-                    if (!isValid) await replayBoard.swapCandies(candy1, candy2);
+                    await replayBoard.swapCandies(candy1, candy2, true);
+                    const isValid = await replayBoard.processMatches(false, [candy1, candy2], true);
+                    if (!isValid) await replayBoard.swapCandies(candy1, candy2, true);
                 }
             } else if (action.type === 'smash') {
                 const candiesToSmash = action.smashed
                     .map(coords => (replayBoard.grid[coords.r] ? replayBoard.grid[coords.r][coords.c] : null))
                     .filter(Boolean);
-                if (candiesToSmash.length > 0) await replayBoard.smashCandies(candiesToSmash);
+                if (candiesToSmash.length > 0) await replayBoard.smashCandies(candiesToSmash, true);
             } else if (action.type === 'initialCascade') {
-                await replayBoard.processMatches(false, null);
+                await replayBoard.processMatches(false, null, true);
             }
         }
         
