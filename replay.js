@@ -97,58 +97,6 @@ export default class Replay {
         this.scheduleActions(replayBoard);
     }
 
-    async rebuildAndSchedule(resumeFromTime = 0) {
-        const recording = recorder.getRecording();
-        if (!recording || !recording.initialState) return;
-
-        const replayBoardElement = document.getElementById('replay-board');
-        replayBoardElement.innerHTML = '';
-
-        const candyQueue = recording.actions.filter(a => a.type === 'newCandy').map(a => a.candyType);
-        const replayTypeGenerator = () => {
-            const nextType = candyQueue.shift();
-            return nextType || this.config.candyTypes[0];
-        };
-        
-        const replayBoard = new Board(this.config.boardSize, this.config.candyTypes, () => {}, replayTypeGenerator);
-        replayBoard.boardElement = replayBoardElement;
-        replayBoard.setupBoard();
-
-        replayBoard.createCandy = function(row, col, type, isInitializing = false) {
-            return Board.prototype.createCandy.call(this, row, col, type, isInitializing, true);
-        };
-        replayBoard.fillBoard = function(isReplay, noAnimation) {
-            return Board.prototype.fillBoard.call(this, true, noAnimation);
-        };
-
-        replayBoard.initialize(recording.initialState);
-        this.state.currentReplayBoard = replayBoard;
-
-        // Fast-forward to the pause point without delays/animations
-        const pastActions = this.state.actions.filter(a => a.timestamp < resumeFromTime);
-        for (const action of pastActions) {
-            if (action.type === 'swap') {
-                const candy1 = replayBoard.grid[action.from.r][action.from.c];
-                const candy2 = replayBoard.grid[action.to.r][action.to.c];
-                if (candy1 && candy2) {
-                    await replayBoard.swapCandies(candy1, candy2, true);
-                    const isValid = await replayBoard.processMatches(false, [candy1, candy2], true);
-                    if (!isValid) await replayBoard.swapCandies(candy1, candy2, true);
-                }
-            } else if (action.type === 'smash') {
-                const candiesToSmash = action.smashed
-                    .map(coords => (replayBoard.grid[coords.r] ? replayBoard.grid[coords.r][coords.c] : null))
-                    .filter(Boolean);
-                if (candiesToSmash.length > 0) await replayBoard.smashCandies(candiesToSmash, true);
-            } else if (action.type === 'initialCascade') {
-                await replayBoard.processMatches(false, null, true);
-            }
-        }
-        
-        // Now, schedule the remaining actions with delays
-        this.scheduleActions(replayBoard, resumeFromTime);
-    }
-
     scheduleActions(replayBoard, resumeFromTime = 0) {
         this.replayTimeouts.forEach(clearTimeout);
         this.replayTimeouts = [];
@@ -237,9 +185,7 @@ export default class Replay {
             this.replayBgmControl.resume();
         }
 
-        // The rebuildAndSchedule method already handles fast-forwarding without animations.
-        // The setTimeout override is not needed and causes an error.
-        this.rebuildAndSchedule(this.state.pauseTime);
+        this.scheduleActions(this.state.currentReplayBoard, this.state.pauseTime);
 
         const playPauseButton = document.getElementById('play-pause-button');
         playPauseButton.innerHTML = '&#10074;&#10074;'; // Pause icon
