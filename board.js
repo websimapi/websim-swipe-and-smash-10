@@ -2,13 +2,36 @@ import * as recorder from './recorder.js';
 import { playSound } from './audio.js';
 
 export default class Board {
-    constructor(size, candyTypes, onMatch, getNewCandyType) {
+    constructor(size, candyTypes, onMatch, getNewCandyType, getIsPaused = () => false) {
         this.size = size;
         this.candyTypes = candyTypes;
         this.grid = [];
         this.boardElement = document.getElementById('game-board');
         this.onMatch = onMatch;
         this.getNewCandyType = getNewCandyType;
+        this.getIsPaused = getIsPaused;
+    }
+
+    pausableTimeout(duration) {
+        return new Promise(resolve => {
+            let start = performance.now();
+            let remaining = duration;
+
+            const tick = (now) => {
+                if (!this.getIsPaused()) {
+                    const elapsed = now - start;
+                    start = now;
+                    remaining -= elapsed;
+                }
+
+                if (remaining <= 0) {
+                    resolve();
+                } else {
+                    requestAnimationFrame(tick);
+                }
+            };
+            requestAnimationFrame(tick);
+        });
     }
 
     initialize(initialState) {
@@ -82,7 +105,7 @@ export default class Board {
 
         playSound('nice_swipe.mp3');
         recorder.recordSound('nice_swipe.mp3');
-        return new Promise(resolve => setTimeout(resolve, 300));
+        return this.pausableTimeout(300);
     }
 
     async processMatches(isInitializing = false, swappedCandies = null) {
@@ -147,7 +170,7 @@ export default class Board {
             });
         }
         
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await this.pausableTimeout(300);
         
         candiesToRemove.forEach(candy => candy.remove());
         
@@ -230,7 +253,7 @@ export default class Board {
             }
         });
 
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await this.pausableTimeout(300);
         
         candiesToSmash.forEach(candy => candy.remove());
         
@@ -260,7 +283,7 @@ export default class Board {
             this.grid[parseInt(candy.dataset.row)][parseInt(candy.dataset.col)] = null;
         });
 
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await this.pausableTimeout(300);
         
         candiesToRemove.forEach(candy => candy.remove());
         
@@ -288,7 +311,7 @@ export default class Board {
                 }
             }
         }
-        return new Promise(resolve => setTimeout(resolve, 300));
+        return this.pausableTimeout(300);
     }
     
     async fillBoard(isReplay = false) {
@@ -306,7 +329,7 @@ export default class Board {
                 }
             }
         }
-        return new Promise(resolve => setTimeout(resolve, 300));
+        return this.pausableTimeout(300);
     }
 
     isValid(row, col) {

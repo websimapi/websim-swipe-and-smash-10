@@ -72,7 +72,7 @@ export default class Replay {
             return nextType || this.config.candyTypes[0];
         };
 
-        const replayBoard = new Board(this.config.boardSize, this.config.candyTypes, () => {}, replayTypeGenerator);
+        const replayBoard = new Board(this.config.boardSize, this.config.candyTypes, () => {}, replayTypeGenerator, () => this.state.isPaused);
         replayBoard.boardElement = replayBoardElement;
         replayBoard.setupBoard();
 
