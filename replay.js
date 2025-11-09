@@ -8,6 +8,7 @@ export default class Replay {
         this.config = config;
         this.replayTimeouts = [];
         this.replayBgmControl = null;
+        this.controlsTimeout = null;
         this.state = {
             isPlaying: false,
             isPaused: false,
@@ -23,9 +24,33 @@ export default class Replay {
     setupUI() {
         document.getElementById('clip-button').addEventListener('click', () => this.show());
         document.getElementById('close-replay-button').addEventListener('click', () => this.hide());
-        document.getElementById('play-pause-button').addEventListener('click', () => this.togglePlayback());
+        document.getElementById('replay-container').addEventListener('click', () => this.handleContainerClick());
     }
 
+    handleContainerClick() {
+        if (!this.state.isPlaying) return;
+
+        const playPauseButton = document.getElementById('play-pause-button');
+        if (this.state.isPaused) {
+            this.resume();
+        } else {
+            if (playPauseButton.classList.contains('visible')) {
+                this.pause();
+            } else {
+                this.showControls();
+            }
+        }
+    }
+
+    showControls() {
+        const playPauseButton = document.getElementById('play-pause-button');
+        playPauseButton.classList.add('visible');
+        clearTimeout(this.controlsTimeout);
+        this.controlsTimeout = setTimeout(() => {
+            playPauseButton.classList.remove('visible');
+        }, 2000);
+    }
+    
     show() {
         this.game.pauseTimer();
         this.game.pauseMainBGM();
@@ -93,6 +118,7 @@ export default class Replay {
         this.state.currentReplayBoard = replayBoard; // Store for resume
         playPauseButton.innerHTML = '&#10074;&#10074;'; // Pause icon
         playPauseButton.classList.remove('playing');
+        playPauseButton.classList.remove('visible');
 
         this.scheduleActions(replayBoard);
     }
@@ -169,10 +195,12 @@ export default class Replay {
         if (this.replayBgmControl && this.replayBgmControl.pause) {
             this.replayBgmControl.pause();
         }
+        clearTimeout(this.controlsTimeout);
 
         const playPauseButton = document.getElementById('play-pause-button');
         playPauseButton.innerHTML = '&#9658;'; // Play icon
         playPauseButton.classList.remove('playing');
+        playPauseButton.classList.add('visible');
     }
 
     resume() {
@@ -184,12 +212,14 @@ export default class Replay {
         if (this.replayBgmControl && this.replayBgmControl.resume) {
             this.replayBgmControl.resume();
         }
+        clearTimeout(this.controlsTimeout);
 
         this.scheduleActions(this.state.currentReplayBoard, this.state.pauseTime);
 
         const playPauseButton = document.getElementById('play-pause-button');
         playPauseButton.innerHTML = '&#10074;&#10074;'; // Pause icon
         playPauseButton.classList.remove('playing');
+        playPauseButton.classList.remove('visible');
     }
 
     stop() {
@@ -199,10 +229,12 @@ export default class Replay {
             this.replayBgmControl.stop();
             this.replayBgmControl = null;
         }
+        clearTimeout(this.controlsTimeout);
         this.state = { isPlaying: false, isPaused: false, pauseTime: 0, startTime: 0, actions: [], currentReplayBoard: null };
 
         const playPauseButton = document.getElementById('play-pause-button');
         playPauseButton.innerHTML = '&#9658;'; // Play icon
         playPauseButton.classList.remove('playing');
+        playPauseButton.classList.remove('visible');
     }
 }
