@@ -237,20 +237,9 @@ export default class Replay {
             this.replayBgmControl.resume();
         }
 
-        // Disable animations for fast-forward
-        const originalSetTimeout = window.setTimeout;
-        window.setTimeout = (func, delay) => {
-            if (delay === 300) { // Target board animation delays
-                func();
-                return -1; // Return a dummy ID
-            }
-            return originalSetTimeout(func, delay);
-        };
-        
-        this.rebuildAndSchedule(this.state.pauseTime).then(() => {
-            // Restore normal animations after rebuild
-            window.setTimeout = originalSetTimeout;
-        });
+        // The rebuildAndSchedule method already handles fast-forwarding without animations.
+        // The setTimeout override is not needed and causes an error.
+        this.rebuildAndSchedule(this.state.pauseTime);
 
         const playPauseButton = document.getElementById('play-pause-button');
         playPauseButton.innerHTML = '&#10074;&#10074;'; // Pause icon
