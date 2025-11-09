@@ -140,6 +140,8 @@ export default class Replay {
                     .map(coords => (replayBoard.grid[coords.r] ? replayBoard.grid[coords.r][coords.c] : null))
                     .filter(Boolean);
                 if (candiesToSmash.length > 0) await replayBoard.smashCandies(candiesToSmash);
+            } else if (action.type === 'initialCascade') {
+                await replayBoard.processMatches(false, null);
             }
         }
         
@@ -178,6 +180,8 @@ export default class Replay {
                     if (candiesToSmash.length > 0) {
                         await replayBoard.smashCandies(candiesToSmash);
                     }
+                } else if (action.type === 'initialCascade') {
+                    await replayBoard.processMatches(false, null);
                 } else if (action.type === 'sound') {
                     playSound(action.name);
                 } else if (action.type === 'startBGM' && !this.replayBgmControl) {

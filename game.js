@@ -91,6 +91,9 @@ class Game {
         playBackgroundMusic();
         recorder.startRecording(this.board.grid);
         this.isRecordingStarted = true;
+        
+        // Record the initial cascade as an action for the replay.
+        recorder.recordAction({ type: 'initialCascade' });
 
         this.startTimer();
         this.inputHandler.enable();
