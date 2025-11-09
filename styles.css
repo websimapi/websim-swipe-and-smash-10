@@ -305,7 +305,6 @@ h1 {
     cursor: pointer;
     opacity: 0;
     transition: opacity 0.3s;
-    pointer-events: all;
 }
 
 #replay-container:hover #play-pause-button {

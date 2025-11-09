@@ -30,15 +30,10 @@ export default class Replay {
     handleContainerClick() {
         if (!this.state.isPlaying) return;
 
-        const playPauseButton = document.getElementById('play-pause-button');
         if (this.state.isPaused) {
             this.resume();
         } else {
-            if (playPauseButton.classList.contains('visible')) {
-                this.pause();
-            } else {
-                this.showControls();
-            }
+            this.pause();
         }
     }
 
@@ -48,7 +43,7 @@ export default class Replay {
         clearTimeout(this.controlsTimeout);
         this.controlsTimeout = setTimeout(() => {
             playPauseButton.classList.remove('visible');
-        }, 2000);
+        }, 1000);
     }
     
     show() {
@@ -118,7 +113,8 @@ export default class Replay {
         this.state.currentReplayBoard = replayBoard; // Store for resume
         playPauseButton.innerHTML = '&#10074;&#10074;'; // Pause icon
         playPauseButton.classList.remove('playing');
-        playPauseButton.classList.remove('visible');
+        
+        this.showControls(); // Show controls for 1 second at the start
 
         this.scheduleActions(replayBoard);
     }
@@ -199,7 +195,6 @@ export default class Replay {
 
         const playPauseButton = document.getElementById('play-pause-button');
         playPauseButton.innerHTML = '&#9658;'; // Play icon
-        playPauseButton.classList.remove('playing');
         playPauseButton.classList.add('visible');
     }
 
@@ -212,13 +207,11 @@ export default class Replay {
         if (this.replayBgmControl && this.replayBgmControl.resume) {
             this.replayBgmControl.resume();
         }
-        clearTimeout(this.controlsTimeout);
-
+        
         this.scheduleActions(this.state.currentReplayBoard, this.state.pauseTime);
 
         const playPauseButton = document.getElementById('play-pause-button');
         playPauseButton.innerHTML = '&#10074;&#10074;'; // Pause icon
-        playPauseButton.classList.remove('playing');
         playPauseButton.classList.remove('visible');
     }
 
@@ -234,7 +227,6 @@ export default class Replay {
 
         const playPauseButton = document.getElementById('play-pause-button');
         playPauseButton.innerHTML = '&#9658;'; // Play icon
-        playPauseButton.classList.remove('playing');
         playPauseButton.classList.remove('visible');
     }
 }
